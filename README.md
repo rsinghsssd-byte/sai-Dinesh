@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Case File — GitHub Commit Plagiarism Detection System
 
 A web app that clones multiple GitHub repositories, normalizes and compares
@@ -161,3 +162,6 @@ Add an entry to `SUPPORTED_LANGUAGES` and `_KEYWORDS` in
 `backend/app/preprocessing.py` and a line/block comment pair in
 `_COMMENT_SYNTAX`. No other file needs to change — the tokenizer,
 fingerprinting, and commit analysis are language-agnostic.
+=======
+# github-plagiarism-detector
+>>>>>>> 6f9f4f8c1547bc9772eca6415bd50863a96f3f0f
