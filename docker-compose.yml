@@ -1,0 +1,19 @@
+services:
+  plagiarism-detector:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    image: plagiarism-detector:latest
+    ports:
+      - "8000:8000"
+    volumes:
+      - plagcheck-data:/app/data
+    environment:
+      - CORS_ORIGINS=*
+      # Optional: set a GitHub token to raise API rate limits when cloning
+      # many/large repos (public repos work fine without it).
+      # - GITHUB_TOKEN=ghp_xxx
+    restart: unless-stopped
+
+volumes:
+  plagcheck-data:
