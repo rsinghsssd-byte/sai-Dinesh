@@ -202,6 +202,12 @@ function renderDashboard(result) {
   const matrix = result.similarity_matrix;
   const threshold = result.similarity_threshold;
 
+  // -- dashboard repos list --
+  const dashRepoTags = repos.map(url => {
+    return `<span class="repo-tag"><a href="${escapeHtml(url)}" target="_blank" rel="noopener">${escapeHtml(shortName(url))}</a></span>`;
+  }).join("");
+  document.getElementById("dashboardRepos").innerHTML = `<span>Repositories analyzed:</span> ${dashRepoTags}`;
+
   // -- matrix table --
   let html = "<table class='matrix-table'><tr><th></th>";
   repos.forEach(r => html += `<th title="${r}">${shortName(r)}</th>`);
