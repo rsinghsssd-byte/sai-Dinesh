@@ -112,7 +112,14 @@ def get_job(job_id: str) -> Optional[dict]:
 def list_jobs(limit: int = 50) -> list[dict]:
     with get_conn() as conn:
         rows = conn.execute(
-            "SELECT id, status, progress, created_at, updated_at FROM jobs ORDER BY created_at DESC LIMIT ?",
+            "SELECT id, status, progress, request_json, created_at, updated_at FROM jobs ORDER BY created_at DESC LIMIT ?",
             (limit,),
         ).fetchall()
-        return [dict(r) for r in rows]
+        
+        result = []
+        for r in rows:
+            d = dict(r)
+            d["request"] = json.loads(d.pop("request_json"))
+            result.append(d)
+        return result
+
