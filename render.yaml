@@ -6,12 +6,6 @@ services:
     dockerContext: .
     plan: free
 
-    # Persistent disk so SQLite job history survives redeploys
-    disk:
-      name: plagcheck-data
-      mountPath: /app/data
-      sizeGB: 1
-
     envVars:
       - key: PLAGCHECK_DB_PATH
         value: /app/data/jobs.db
