@@ -24,6 +24,7 @@
     <div class="topbar-status" id="apiStatus">
       <span class="dot dot-idle"></span> checking backend…
     </div>
+    <button class="history-nav-btn" id="historyNavBtn" title="View evaluation history">⏱ History</button>
   </div>
 </header>
 
@@ -121,6 +122,19 @@
       <button class="close-btn" id="closeDetailBtn">✕ close</button>
     </div>
     <div id="detailBody"></div>
+  </section>
+
+  <!-- HISTORY PANEL -->
+  <section class="panel history-panel hidden" id="historyPanel">
+    <div class="panel-head">
+      <span class="tag">04</span>
+      <h2>Evaluation History</h2>
+      <p class="panel-desc">All past analyses — which GitHub repos were evaluated and when.</p>
+      <button class="close-btn" id="closeHistoryBtn">✕ close</button>
+    </div>
+    <div id="historyLoading" class="history-loading">Loading evaluations…</div>
+    <div id="historyEmpty" class="empty-note hidden">No evaluations have been run yet.</div>
+    <div id="historyList" class="history-list"></div>
   </section>
 
 </main>

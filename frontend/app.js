@@ -20,6 +20,8 @@ const errorBox = document.getElementById("errorBox");
 const dashboardPanel = document.getElementById("dashboardPanel");
 const detailPanel = document.getElementById("detailPanel");
 const apiStatus = document.getElementById("apiStatus");
+const historyPanel = document.getElementById("historyPanel");
+const historyNavBtn = document.getElementById("historyNavBtn");
 
 // ---- Init ----
 window.addEventListener("DOMContentLoaded", async () => {
@@ -30,7 +32,10 @@ window.addEventListener("DOMContentLoaded", async () => {
   analyzeForm.addEventListener("submit", onSubmit);
   document.getElementById("closeDetailBtn").addEventListener("click", () => detailPanel.classList.add("hidden"));
   document.getElementById("downloadReportBtn").addEventListener("click", downloadReport);
+  historyNavBtn.addEventListener("click", toggleHistory);
+  document.getElementById("closeHistoryBtn").addEventListener("click", closeHistory);
 });
+
 
 async function checkHealth() {
   try {
@@ -314,3 +319,117 @@ function downloadReport() {
   if (!currentJobId) return;
   window.location.href = `${API_BASE}/api/jobs/${currentJobId}/report`;
 }
+
+// ---- History panel ----
+function toggleHistory() {
+  const isOpen = !historyPanel.classList.contains("hidden");
+  if (isOpen) {
+    closeHistory();
+  } else {
+    openHistory();
+  }
+}
+
+function openHistory() {
+  historyPanel.classList.remove("hidden");
+  historyNavBtn.classList.add("active");
+  historyPanel.scrollIntoView({ behavior: "smooth", block: "start" });
+  loadHistory();
+}
+
+function closeHistory() {
+  historyPanel.classList.add("hidden");
+  historyNavBtn.classList.remove("active");
+}
+
+async function loadHistory() {
+  const loadingEl = document.getElementById("historyLoading");
+  const emptyEl = document.getElementById("historyEmpty");
+  const listEl = document.getElementById("historyList");
+
+  loadingEl.classList.remove("hidden");
+  emptyEl.classList.add("hidden");
+  listEl.innerHTML = "";
+
+  try {
+    const res = await fetch(`${API_BASE}/api/jobs`);
+    if (!res.ok) throw new Error("Failed to fetch history");
+    const jobs = await res.json();
+
+    loadingEl.classList.add("hidden");
+
+    if (!jobs.length) {
+      emptyEl.classList.remove("hidden");
+      return;
+    }
+
+    listEl.innerHTML = jobs.map(job => renderHistoryItem(job)).join("");
+  } catch (err) {
+    loadingEl.classList.add("hidden");
+    listEl.innerHTML = `<div class="error-box" style="margin:0">Could not load history: ${escapeHtml(err.message)}</div>`;
+  }
+}
+
+function renderHistoryItem(job) {
+  const req = job.request || {};
+  const repos = (req.repo_urls || []);
+  const lang = req.language || "—";
+  const branch = req.branch || "main";
+  const threshold = req.similarity_threshold != null ? req.similarity_threshold : "—";
+  const createdAt = formatTimestamp(job.created_at);
+  const updatedAt = formatTimestamp(job.updated_at);
+  const statusClass = `status-${job.status}`;
+  const repoCount = repos.length;
+
+  const repoTags = repos.map(url => {
+    const label = url.replace(/\/$/, "").split("/").slice(-2).join("/");
+    return `<span class="repo-tag">
+      <span class="repo-tag-icon">⎇</span>
+      <a href="${escapeHtml(url)}" target="_blank" rel="noopener">${escapeHtml(label)}</a>
+    </span>`;
+  }).join("");
+
+  return `
+    <div class="history-item">
+      <div class="history-item-top">
+        <div class="history-item-meta">
+          <span class="status-pill ${statusClass}">${job.status}</span>
+          <span class="history-time">
+            <strong>Started:</strong> ${createdAt}
+          </span>
+          ${job.updated_at !== job.created_at
+            ? `<span class="history-time"><strong>Finished:</strong> ${updatedAt}</span>`
+            : ""}
+        </div>
+        <span class="history-time" style="color:var(--amber)">
+          ${repoCount} repo${repoCount !== 1 ? "s" : ""}
+        </span>
+      </div>
+
+      <div class="history-repos">
+        ${repoTags || '<span class="history-time">No repos recorded</span>'}
+      </div>
+
+      <div class="history-item-footer">
+        <span>🌐 ${escapeHtml(lang)}</span>
+        <span>⎇ branch: ${escapeHtml(branch)}</span>
+        <span>⚖ threshold: ${threshold}</span>
+        <span style="margin-left:auto;color:var(--muted);font-size:10.5px">id: ${job.id.slice(0,8)}…</span>
+      </div>
+    </div>
+  `;
+}
+
+function formatTimestamp(isoStr) {
+  if (!isoStr) return "—";
+  try {
+    const d = new Date(isoStr.endsWith("Z") ? isoStr : isoStr + "Z");
+    return d.toLocaleString(undefined, {
+      year: "numeric", month: "short", day: "numeric",
+      hour: "2-digit", minute: "2-digit", second: "2-digit"
+    });
+  } catch {
+    return isoStr;
+  }
+}
+
